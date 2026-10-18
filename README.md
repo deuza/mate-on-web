@@ -122,7 +122,6 @@ mate-on-web/
 ├── puzzle.php              # JSON API (loads a random puzzle)
 ├── screenshots/            # README screenshots
 ├── style.css               # CSS styles
-├── tools/                  # make-screenshots.py (regenerates the screenshots, Playwright)
 ├── vendor/                 # Bundled third-party files: jQuery, chessboard.js, piece images
 ├── 
 ├── mat1.csv                # Mate-in-1 puzzles (to be generated)
