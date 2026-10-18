@@ -1,12 +1,12 @@
-[![GitHub last commit](https://img.shields.io/github/v/release/deuza/mate-on-web?style=plastic)](https://github.com/deuza/mat-on-web/commits/main)
-![GitHub Release Date](https://img.shields.io/github/release-date/deuza/mate-on-web)
-[![GitHub last commit](https://img.shields.io/github/last-commit/deuza/mate-on-web?style=plastic)](https://github.com/deuza/mate-on-web/commits/main)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/t/deuza/mate-on-web)
-[![License: WTFPL](https://img.shields.io/badge/license-WTFPL_2.0-lightgrey.svg?style=plastic)](https://www.wtfpl.net/)
 [![License: CC0](https://img.shields.io/badge/license-CC0_1.0-lightgrey.svg?style=plastic)](https://creativecommons.org/publicdomain/zero/1.0/)
-
-![Hack The Planet](https://img.shields.io/badge/hack-the--planet-black?style=flat-square&logo=gnu\&logoColor=white)
+[![License: WTFPL](https://img.shields.io/badge/license-WTFPL_2.0-lightgrey.svg?style=plastic)](https://www.wtfpl.net/)
+![Hack The Planet](https://img.shields.io/badge/hack-the--planet-black?style=plastic&logo=gnu&logoColor=white)
 ![Built With Love](https://img.shields.io/badge/built%20with-%E2%9D%A4%20by%20DeuZa-red?style=plastic)
+
+![GitHub release](https://img.shields.io/github/v/release/deuza/mate-on-web?label=release&style=plastic)
+[![GitHub last commit](https://img.shields.io/github/last-commit/deuza/mate-on-web?style=plastic)](https://github.com/deuza/mate-on-web/commits/main)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/deuza/mate-on-web?style=plastic)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/deuza/mate-on-web?style=plastic)
 
 # ♟️ Mat On Web - Mate in X moves ♟️
 
