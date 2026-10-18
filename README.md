@@ -115,7 +115,7 @@ mate-on-web/
 ├── README.md               # This file
 ├── app.js                  # JavaScript game logic
 ├── chess.js                # chess.js library (local copy)
-├── download\_puzzles.sh    # Lichess download script
+├── download_puzzles.sh    # Lichess download script
 ├── extract.py              # Puzzle extraction script (plays the 1st move)
 ├── favicon.ico             # Application icon
 ├── index.php               # Main interface
