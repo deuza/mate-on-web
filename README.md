@@ -8,7 +8,7 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/deuza/mate-on-web?style=plastic)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/deuza/mate-on-web?style=plastic)
 
-# ♟️ Mat On Web - Mate in X moves ♟️
+# ♟️ Mate On Web - Mate in X moves ♟️
 
 Mate puzzle training web interface, powered by the Lichess database.
 
@@ -23,7 +23,7 @@ Mate puzzle training web interface, powered by the Lichess database.
 
 ## Table of contents
 
-* [♟️ Mat On Web - Mate in X moves ♟️](#️-mat-on-web---mate-in-x-moves)
+* [♟️ Mate On Web - Mate in X moves ♟️](#️-mate-on-web---mate-in-x-moves)
 
   * [Table of contents](#table-of-contents)
   * [Quick install](#quick-install)
@@ -77,13 +77,13 @@ cd /var/www/html/
 Clone the repository :
 
 ```
-git clone https://github.com/deuza/mat-on-web.git
+git clone https://github.com/deuza/mate-on-web.git
 ```
 
 Go to the new directory :
 
 ```
-cd mat-on-web/
+cd mate-on-web/
 ```
 
 Create the Python environment to install python-chess, which is used to generate the FEN positions of the puzzles :

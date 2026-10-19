@@ -39,7 +39,7 @@ for ($i = 1; $i <= 5; $i++) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mat On Web - Mate in X moves</title>
+    <title>Mate On Web - Mate in X moves</title>
     
     <!-- Chessboard.js CSS (local copy, see vendor/README.md) -->
     <link rel="stylesheet" href="vendor/chessboard-1.0.0.min.css">
@@ -188,7 +188,7 @@ for ($i = 1; $i <= 5; $i++) {
   Program released under the
   <a href="https://creativecommons.org/publicdomain/zero/1.0/" style="color: white;">CC0</a> license,
   available at:
-  <a href="https://github.com/deuza/mate-on-web" style="color: white;">github.com/deuza/mat-on-web</a>
+  <a href="https://github.com/deuza/mate-on-web" style="color: white;">github.com/deuza/mate-on-web</a>
 </p>
 
 
