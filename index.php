@@ -79,13 +79,15 @@ for ($i = 1; $i <= 5; $i++) {
     <!-- Game area (hidden at startup) -->
     <div class="game-area" id="gameArea" style="display: none;">
         
-        <!-- Main controls -->
+        <!-- Main controls. The handlers are attached in app.js: no inline
+             script in the page, so that a strict content security policy
+             can apply (see docs/hardening.md) -->
         <div class="controls">
-            <button onclick="loadNewPuzzle()" id="newPuzzleBtn">🎲 New puzzle</button>
-            <button onclick="flipBoard()" id="flipBtn">🔄 Flip board</button>
-            <button onclick="showSolution()" id="solutionBtn">💡 Solution</button>
-            <button onclick="retryMove()" id="retryBtn" style="display: none;">🔁 Retry</button>
-            <button onclick="backToMenu()" id="menuBtn">📋 Change level</button>
+            <button id="newPuzzleBtn">🎲 New puzzle</button>
+            <button id="flipBtn">🔄 Flip board</button>
+            <button id="solutionBtn">💡 Solution</button>
+            <button id="retryBtn" style="display: none;">🔁 Retry</button>
+            <button id="menuBtn">📋 Change level</button>
         </div>
 
         <div class="main-container">
@@ -130,7 +132,7 @@ for ($i = 1; $i <= 5; $i++) {
                 <!-- Lichess link -->
                 <div class="section">
                     <h3>🔗 Source</h3>
-                    <a href="#" id="lichessLink" target="_blank" class="lichess-link">
+                    <a href="#" id="lichessLink" target="_blank" rel="noopener noreferrer" class="lichess-link">
                         View on Lichess.org
                     </a>
                 </div>
@@ -167,7 +169,7 @@ for ($i = 1; $i <= 5; $i++) {
                 <button class="promotion-btn" data-piece="b">♝ Bishop</button>
                 <button class="promotion-btn" data-piece="n">♞ Knight</button>
             </div>
-            <button class="cancel-btn" onclick="cancelPromotion()">Cancel</button>
+            <button class="cancel-btn" id="promotionCancelBtn">Cancel</button>
         </div>
     </div>
 

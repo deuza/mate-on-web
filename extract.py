@@ -81,13 +81,19 @@ parser.add_argument(
 parser.add_argument(
     'input_file',
     nargs='?',
-    type=argparse.FileType('r'),
+    # errors='replace': a byte that is not UTF-8 somewhere in a 1 GB dump
+    # must not abort the whole extraction with a UnicodeDecodeError
+    type=argparse.FileType('r', errors='replace'),
     default=sys.stdin,
     help='CSV file to parse (or STDIN if not specified)'
 )
 
 # Parse the arguments
 args = parser.parse_args()
+
+# Same tolerance when the dump arrives through a pipe
+if args.input_file is sys.stdin:
+    sys.stdin.reconfigure(errors='replace')
 
 # ============================================================================
 # CHECK: show --help if there are no arguments AND no pipe
@@ -106,6 +112,7 @@ if args.input_file == sys.stdin and os.isatty(sys.stdin.fileno()):
 
 line_count = 0
 processed = 0
+skipped = 0
 
 if args.verbose:
     print(f"# Starting processing...", file=sys.stderr)
@@ -114,6 +121,13 @@ for line in args.input_file:
     line_count += 1
     line = line.strip()
     fields = line.split(',', 9)
+
+    # Header, empty, truncated or move-less line: skip it. An IndexError
+    # here would abort the extraction, and download_puzzles.sh (set -e)
+    # would stop with a partial file
+    if len(fields) < 10 or not fields[2].split():
+        skipped += 1
+        continue
 
     if args.mat_en:
         themes = fields[7]
@@ -159,4 +173,5 @@ for line in args.input_file:
         continue
 
 if args.verbose:
-    print(f"# Done: {processed} puzzles processed out of {line_count} lines", file=sys.stderr)
+    print(f"# Done: {processed} puzzles processed out of {line_count} lines"
+          f" ({skipped} malformed line(s) skipped)", file=sys.stderr)

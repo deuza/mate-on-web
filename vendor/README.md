@@ -29,3 +29,20 @@ tar -xzf chrisoakman-chessboardjs-<version>.tgz package/dist/
 Then copy the files here, rename `jquery.min.js` to `jquery-<version>.min.js`
 and update the three `vendor/...` references in `index.php` (one `<link>`, two
 `<script>`). chessboard.js needs jQuery 1.8.3 or later.
+
+## Checking the files
+
+`SHA256SUMS` lists the hash of every file here, and of `chess.js` at the
+root of the project. To check an installation:
+
+```
+(cd vendor && sha256sum -c SHA256SUMS)
+```
+
+After an update, check the new files by other means first (`npm pack`
+verifies the tarball against the registry's integrity field), then refresh
+the list:
+
+```
+cd vendor && sha256sum ../chess.js *.js *.css img/chesspieces/wikipedia/*.png > SHA256SUMS
+```

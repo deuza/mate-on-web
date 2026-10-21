@@ -31,6 +31,7 @@ Mate puzzle training web interface, powered by the Lichess database.
     * [1. Prerequisites](#1-prerequisites)
     * [2. Deployment](#2-deployment)
     * [3. Access](#3-access)
+    * [Web server configuration](#web-server-configuration)
   * [File structure](#file-structure)
   * [Usage](#usage)
 
@@ -49,15 +50,15 @@ Mate puzzle training web interface, powered by the Lichess database.
 
 ### 1. Prerequisites
 
-* A web server with PHP 7.4+ (Apache, Nginx...)
+* A web server (Apache, Nginx...) with a PHP release still in security support: 8.3 or later at the time of writing, tested with PHP 8.4 on Debian 13
 * Python 3 with `python-chess` (to generate the puzzles)
-* git version 2.39.5
+* git
 
 To generate the puzzles:
 
-* wget | GNU Wget 1.21.3 built on linux-gnu.
-* zstd | Zstandard CLI (64-bit) v1.5.4, by Yann Collet
-* python3 | Python 3.11.2
+* wget
+* zstd
+* python3 (3.9 or later) with the `venv` module (`python3-venv` on Debian)
 
 ### 2. Deployment
 
@@ -86,12 +87,12 @@ Go to the new directory :
 cd mate-on-web/
 ```
 
-Create the Python environment to install python-chess, which is used to generate the FEN positions of the puzzles :
+Create the Python environment to install python-chess, which is used to generate the FEN positions of the puzzles. `requirements.txt` pins its version and its SHA-256 hash, so that `pip` refuses anything else :
 
 ```
 python3 -m venv venv 
 source venv/bin/activate
-pip install python-chess
+pip install --require-hashes -r requirements.txt
 deactivate
 ```
 
@@ -106,23 +107,39 @@ Download and extract the Lichess puzzles by following the instructions in the sc
 
 Open in a browser : `http://your-server/mate-on-web/`
 
+### Web server configuration
+
+Before opening the page to others, install the web server configuration shipped in `docs/` : without it, the server serves `.git/`, `venv/`, the scripts and the puzzle files, and sends no security header. With Apache :
+
+```
+cp docs/apache2/mate-on-web.conf /etc/apache2/conf-available/mate-on-web.conf
+a2enmod headers
+a2enconf mate-on-web
+apache2ctl configtest && systemctl reload apache2
+```
+
+The nginx equivalent, the content security policy, rate limiting and the checks to run afterwards are in [docs/hardening.md](docs/hardening.md). Run the generation pipeline as an unprivileged user (see its section 4).
+
 ## File structure
 
 ```
 mate-on-web/
+├── .gitignore              # Generated puzzle files, Lichess dump and venv, kept out of git
 ├── LICENSE                 # Creative Commons Zero v1.0 Universal
 ├── LICENSE-WTFPL           # What The Fuck Public License
 ├── README.md               # This file
 ├── app.js                  # JavaScript game logic
 ├── chess.js                # chess.js library (local copy)
+├── docs/                   # Hardening notes, Apache and nginx configuration
 ├── download_puzzles.sh    # Lichess download script
 ├── extract.py              # Puzzle extraction script (plays the 1st move)
 ├── favicon.ico             # Application icon
 ├── index.php               # Main interface
 ├── puzzle.php              # JSON API (loads a random puzzle)
+├── requirements.txt        # python-chess, pinned version and SHA-256 hash
 ├── screenshots/            # README screenshots
 ├── style.css               # CSS styles
-├── vendor/                 # Bundled third-party files: jQuery, chessboard.js, piece images
+├── vendor/                 # Bundled third-party files: jQuery, chessboard.js, piece images, SHA256SUMS
 ├── 
 ├── mat1.csv                # Mate-in-1 puzzles (to be generated)
 ├── mat2.csv                # Mate-in-2 puzzles (to be generated)
@@ -136,7 +153,7 @@ mate-on-web/
 ## Usage
 
 1. **Select a level** : Mate in 1, 2, 3, 4 or 5 moves
-2. **Play** : Drag and drop the pieces to find the mate
+2. **Play** : Drag and drop a piece, or tap (click) it and then its destination, to find the mate
 3. **Wrong move** : Retry or show the solution
 4. **Right move** : The opponent replies automatically
 5. **Mate found** : Load a new puzzle
@@ -146,7 +163,7 @@ mate-on-web/
 * `N`: New puzzle
 * `F`: Flip the board
 * `S`: Show the solution
-* `Esc`: Cancel the promotion
+* `Esc`: Cancel the promotion, or the piece selected by a tap (click)
 
 The shortcuts are ignored while Ctrl, Alt or Cmd is held, so the browser's own shortcuts keep working.
 
@@ -186,6 +203,7 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 ## Technical notes
 
 * The board is automatically oriented according to the side to move
+* Touch screens are supported: a piece can be dragged with a finger, or tapped and then its destination tapped (the same works with a mouse click)
 * Pawn promotion offers a choice between Queen, Rook, Bishop and Knight
 * Session stats are kept in memory only (no persistence)
 * No network access needed at runtime: jQuery, chessboard.js and the piece images are bundled in `vendor/` (see `vendor/README.md`), so the application runs offline once the puzzles are generated
@@ -200,7 +218,7 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 
 ## Known issues
 
-* Use on touch screens
+* None known at the moment
 
 ### 6. Acknowledgements
 

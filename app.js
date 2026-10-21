@@ -16,6 +16,9 @@ let boardOrientation = 'white';
 let puzzleGeneration = 0;   // Incremented whenever a puzzle is loaded or left: delayed
                             // callbacks compare it to detect they belong to a stale puzzle
 let solutionPlaying = false; // True while the solution animation runs
+let selectedSquare = null;   // Square of the piece picked by a tap (or a click), waiting
+                             // for a second tap on its destination
+let dragging = false;        // True between a drag start accepted by onDragStart and its drop
 
 // Session stats
 let stats = {
@@ -51,6 +54,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Main controls and the promotion cancel button. Attached here rather
+    // than with onclick attributes in index.php: an inline handler needs
+    // script-src 'unsafe-inline', which would defeat a strict content
+    // security policy (see docs/hardening.md)
+    const controls = {
+        newPuzzleBtn: loadNewPuzzle,
+        flipBtn: flipBoard,
+        solutionBtn: showSolution,
+        retryBtn: retryMove,
+        menuBtn: backToMenu,
+        promotionCancelBtn: cancelPromotion
+    };
+    Object.keys(controls).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', controls[id]);
+    });
+
     console.log('✓ Puzzle Trainer initialized');
 });
 
@@ -76,6 +96,7 @@ function startLevel(level) {
 
 function backToMenu() {
     puzzleGeneration++;     // stops any pending animation of the current puzzle
+    clearSelection();
     document.getElementById('gameArea').style.display = 'none';
     document.getElementById('levelSelector').style.display = 'block';
     showStatus('Select a level to get started', 'info');
@@ -97,10 +118,29 @@ function initializeBoard() {
         onDragStart: onDragStart,
         onDrop: onDrop,
         onSnapEnd: onSnapEnd,
+        onSnapbackEnd: onSnapbackEnd,
         pieceTheme: 'vendor/img/chesspieces/wikipedia/{piece}.png'
     };
 
     board = Chessboard('board', config);
+
+    // Tap-to-move: a tap (or a click) on a piece selects it, a second tap on
+    // the destination plays the move. The first tap is seen by chessboard.js
+    // as a drag without movement and is handled in onDrop; the second one is
+    // a plain click on a square, which chessboard.js does not report, so the
+    // board is listened to directly. A touch screen fires a click after a
+    // tap, so one handler covers both the mouse and the finger.
+    const boardEl = document.getElementById('board');
+    boardEl.addEventListener('click', onSquareClick);
+
+    // A tap on a piece is already handled through onDrop: suppress the mouse
+    // events and the click the browser would synthesize from that same tap,
+    // so it can never be processed twice. Taps on other squares (no drag in
+    // progress) keep their click, which onSquareClick needs.
+    boardEl.addEventListener('touchend', function(e) {
+        if (dragging) e.preventDefault();
+    });
+
     console.log('✓ Board initialized');
 }
 
@@ -116,9 +156,35 @@ function onDragStart(source, piece, position, orientation) {
         (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
     }
+
+    dragging = true;
 }
 
 function onDrop(source, target) {
+    dragging = false;
+
+    // A piece picked up and dropped back on its own square is a tap (or a
+    // click) on that piece: toggle its selection and put it back. The move
+    // itself comes with the next tap, see onSquareClick.
+    if (source === target) {
+        toggleSelection(source);
+        return 'snapback';
+    }
+
+    // A real drag replaces any pending tap selection
+    clearSelection();
+
+    return requestMove(source, target);
+}
+
+/**
+ * Plays a move asked either by a drag or by two taps. A pawn reaching the
+ * last rank opens the promotion modal and the move waits for the choice;
+ * any other move goes straight to tryMove.
+ * Returns 'snapback' when the move is refused, so that onDrop can put the
+ * dragged piece back.
+ */
+function requestMove(source, target) {
     // Check whether this is a promotion
     const piece = game.get(source);
     if (piece && piece.type === 'p') {
@@ -171,6 +237,84 @@ function onSnapEnd() {
     board.position(game.fen());
 }
 
+// ============================================
+// TAP-TO-MOVE (touch screens, works with a mouse too)
+// ============================================
+
+/**
+ * Second half of tap-to-move: the tap on the destination square.
+ *
+ * The first tap, on the piece, never reaches this handler: it starts a drag
+ * in chessboard.js, whose ghost image then sits under the finger (or the
+ * pointer), so the click the browser fires afterwards lands outside the
+ * board (on the ghost, or on the common ancestor of the mousedown and
+ * mouseup targets). That tap is detected in onDrop instead
+ * (source === target). Squares holding a piece of the side to move are
+ * ignored here anyway, so a tap can never be handled twice.
+ */
+function onSquareClick(e) {
+    const squareEl = e.target.closest('[data-square]');
+    if (!squareEl) return;
+    const square = squareEl.dataset.square;
+
+    // Nothing selected: a tap on an empty square or an enemy piece does nothing
+    if (!selectedSquare) return;
+
+    // Same rules as a drag: the player's turn, game not over, no promotion pending
+    if (!isPlayerTurn || game.game_over() || pendingMove) return;
+
+    // Taps on the player's own pieces are handled by onDrop
+    const piece = game.get(square);
+    if (piece && piece.color === game.turn()) return;
+
+    // Tap on the destination: play the move
+    const source = selectedSquare;
+    clearSelection();
+    requestMove(source, square);
+
+    // No drag happened, so the board has to be redrawn by hand. A pending
+    // promotion leaves the pawn where it is until a piece is chosen.
+    if (!pendingMove) {
+        board.position(game.fen());
+    }
+}
+
+function toggleSelection(square) {
+    if (selectedSquare === square) {
+        clearSelection();
+    } else {
+        selectSquare(square);
+    }
+}
+
+function selectSquare(square) {
+    selectedSquare = square;
+    refreshSelectionHighlight();
+}
+
+function clearSelection() {
+    selectedSquare = null;
+    refreshSelectionHighlight();
+}
+
+function refreshSelectionHighlight() {
+    document.querySelectorAll('.highlight-selected').forEach(el => {
+        el.classList.remove('highlight-selected');
+    });
+    if (selectedSquare) {
+        highlightSquare(selectedSquare, 'selected');
+    }
+}
+
+// Safety net: once a piece has snapped back to its square (which is what a
+// tap on a piece does), chessboard.js removes its own highlight classes and
+// re-appends the piece images; the squares and their classes survive, so
+// this only re-applies a highlight that is still there. Kept in case a
+// future version of the library rebuilds the squares as well.
+function onSnapbackEnd() {
+    refreshSelectionHighlight();
+}
+
 function normalizeMove(move) {
     return move.toLowerCase().trim();
 }
@@ -183,6 +327,7 @@ async function loadNewPuzzle() {
     puzzleGeneration++;
     const generation = puzzleGeneration;
     solutionPlaying = false;
+    clearSelection();
     showStatus('Loading puzzle...', 'info');
     setGameMessage('Loading...', '');
     
@@ -221,6 +366,10 @@ async function loadNewPuzzle() {
         }
         
         board.position(currentPuzzle.fen);
+
+        // A piece tapped on the previous position while this one was
+        // loading would stay selected on the new one: drop it
+        clearSelection();
 
         // Update the interface
         updatePuzzleInfo();
@@ -334,6 +483,7 @@ async function playSolutionAnimated() {
     const generation = puzzleGeneration;
     solutionPlaying = true;
     isPlayerTurn = false;
+    clearSelection();
     
     for (let i = currentMoveIndex; i < solutionMoves.length; i++) {
         const move = solutionMoves[i];
@@ -373,6 +523,9 @@ function completePromotion(piece) {
     if (pendingMove) {
         tryMove(pendingMove.from, pendingMove.to, piece);
         pendingMove = null;
+        // Show the promoted piece: after two taps nothing else redraws the
+        // board, and after a drag the pawn was put back while the modal was open
+        board.position(game.fen());
     }
 }
 
@@ -391,13 +544,17 @@ function cancelPromotion() {
 function flipBoard() {
     board.flip();
     boardOrientation = boardOrientation === 'white' ? 'black' : 'white';
+    refreshSelectionHighlight();    // the flip redraws the board
 }
 
 function updatePuzzleInfo() {
     document.getElementById('currentLevel').textContent = 'Mate in ' + currentLevel;
     document.getElementById('currentPlayer').textContent = currentPuzzle.turn === 'w' ? 'White' : 'Black';
     document.getElementById('openingName').textContent = currentPuzzle.opening || '-';
-    document.getElementById('lichessLink').href = currentPuzzle.url;
+    // The URL comes from the puzzle data: only a Lichess address becomes a
+    // link, anything else leaves the link inert (puzzle.php checks it too)
+    document.getElementById('lichessLink').href =
+        /^https:\/\/lichess\.org\//.test(currentPuzzle.url) ? currentPuzzle.url : '#';
 }
 
 function updateProgress() {
@@ -467,9 +624,10 @@ document.addEventListener('keydown', function(e) {
         if (inGame && currentPuzzle) showSolution();
     }
     
-    // Esc: Close the promotion modal
+    // Esc: Close the promotion modal, drop the tap selection
     if (e.key === 'Escape') {
         cancelPromotion();
+        clearSelection();
     }
 });
 

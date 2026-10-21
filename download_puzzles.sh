@@ -67,7 +67,7 @@ if [ ! -d "venv" ]; then
         echo ""
         echo "python3 -m venv venv"
         echo "source venv/bin/activate"
-        echo "pip install python-chess"
+        echo "pip install --require-hashes -r requirements.txt"
         echo "deactivate"
         echo ""
         echo -e "${YELLOW}Then run again: $0${NC}"
@@ -82,7 +82,7 @@ else
             echo -e "${YELLOW}Install it first:${NC}"
             echo ""
             echo "source venv/bin/activate"
-            echo "pip install python-chess"
+            echo "pip install --require-hashes -r requirements.txt"
             echo "deactivate"
             echo ""
             echo -e "${YELLOW}Then run again: $0${NC}"
@@ -157,11 +157,20 @@ if [[ "$response" =~ $YES_PATTERN ]]; then
     # shellcheck source=/dev/null
     source venv/bin/activate
     for i in {1..5}; do
-         echo -e "\n${YELLOW}Extracting mate-in-$i puzzles ... ${NC}"
-        ./extract.py --mate-in "$i" --verbose "$DECOMPRESSED" > "mat${i}.csv"
+        echo -e "\n${YELLOW}Extracting mate-in-$i puzzles ... ${NC}"
+        # The new file is written aside and swapped in at the end: the site
+        # keeps serving the previous puzzles meanwhile, and an extraction
+        # that fails (set -e stops here) leaves the current file untouched.
+        # The interpreter of the venv is named explicitly, with -I so that
+        # neither the environment nor the current directory can put a
+        # module in front of the standard ones.
+        venv/bin/python3 -I extract.py --mate-in "$i" --verbose "$DECOMPRESSED" > "mat${i}.csv.tmp"
         # Line count cache read by index.php, which spares scanning the whole
-        # CSV on every page load
-        wc -l < "mat${i}.csv" > "mat${i}.count"
+        # CSV on every page load. Written before the swap: mv keeps the
+        # modification time of the new CSV, so the count stays the newer of
+        # the two and index.php never falls back on counting the lines.
+        wc -l < "mat${i}.csv.tmp" > "mat${i}.count"
+        mv "mat${i}.csv.tmp" "mat${i}.csv"
         echo -e "\n${GREEN}mat${i}.csv has been generated${NC}"
     done
 else
