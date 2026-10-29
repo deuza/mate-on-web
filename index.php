@@ -60,7 +60,7 @@ for ($i = 1; $i <= 5; $i++) {
 
     <!-- Level selector -->
     <div class="level-selector" id="levelSelector">
-        <h3>🎯 Choose your level</h3>
+        <h2>🎯 Choose your level</h2>
         <div class="level-buttons">
             <?php if (empty($availableLevels)): ?>
                 <p class="no-puzzles">No puzzle file found.<br>
@@ -173,6 +173,15 @@ for ($i = 1; $i <= 5; $i++) {
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="page-footer">
+        With ❤️ by <a href="https://github.com/deuza">DeuZa</a> -
+        program released under the
+        <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> license,
+        available at
+        <a href="https://github.com/deuza/mate-on-web">github.com/deuza/mate-on-web</a>
+    </footer>
+
     <!-- jQuery (required by chessboard.js), local copy -->
     <script src="vendor/jquery-3.7.1.min.js"></script>
     
@@ -184,15 +193,5 @@ for ($i = 1; $i <= 5; $i++) {
     
     <!-- Main application -->
     <script src="app.js"></script>
-
-<p align="center" style="color: white;">
-  With ❤️ by <a href="https://github.com/deuza" style="color: white;">DeuZa</a> —
-  Program released under the
-  <a href="https://creativecommons.org/publicdomain/zero/1.0/" style="color: white;">CC0</a> license,
-  available at:
-  <a href="https://github.com/deuza/mate-on-web" style="color: white;">github.com/deuza/mate-on-web</a>
-</p>
-
-
 </body>
 </html>

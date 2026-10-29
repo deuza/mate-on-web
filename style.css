@@ -77,7 +77,7 @@ body {
     text-align: center;
 }
 
-.level-selector h3 {
+.level-selector h2 {
     color: var(--primary-color);
     font-size: 1.5rem;
     margin-bottom: 20px;
@@ -380,6 +380,37 @@ body {
     background: var(--danger-color);
 }
 
+/* Footer: white on the gradient, like the header.
+   Same max width as .main-container so it lines up with the board. */
+.page-footer {
+    max-width: 1000px;
+    margin: 30px auto 0;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;    /* long URL wraps on narrow screens */
+}
+
+/* Links take the text colour: the browser's default blue reads badly
+   on the violet. Underline kept so they still look like links. */
+.page-footer a {
+    color: inherit;
+    text-underline-offset: 2px;
+}
+
+.page-footer a:hover {
+    text-decoration-thickness: 2px;
+}
+
+.page-footer a:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .main-container {
@@ -420,6 +451,11 @@ body {
 
     .promotion-pieces {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .page-footer {
+        margin-top: 20px;
+        font-size: 0.8rem;
     }
 }
 
