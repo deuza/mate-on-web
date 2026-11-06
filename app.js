@@ -19,6 +19,15 @@ let solutionPlaying = false; // True while the solution animation runs
 let selectedSquare = null;   // Square of the piece picked by a tap (or a click), waiting
                              // for a second tap on its destination
 let dragging = false;        // True between a drag start accepted by onDragStart and its drop
+let mysteryMode = false;     // True after the "Mate in ?" button: the level of each
+                             // puzzle is drawn at random and hidden until its end
+let mysteryRevealed = false; // True once the level of the current puzzle is shown
+                             // (mate found or solution shown); only read in mystery mode
+let mysteryLevels = [];      // Levels the mystery mode draws from: those with a
+                             // button, that is with a puzzle file (filled at startup)
+
+// Passed to startLevel by the "Mate in ?" button, instead of a level number
+const MYSTERY = 'mystery';
 
 // Session stats
 let stats = {
@@ -38,13 +47,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     game = new Chess();
 
-    // Attach the events to the level buttons
-    document.querySelectorAll('.level-btn').forEach(btn => {
+    // Attach the events to the level buttons. [data-level] leaves out the
+    // "Mate in ?" button, which shares their look but not their handler
+    document.querySelectorAll('.level-btn[data-level]').forEach(btn => {
         btn.addEventListener('click', function() {
             const level = parseInt(this.dataset.level);
             startLevel(level);
         });
     });
+
+    // Mystery level: the draw is made among the levels that have a button,
+    // that is a puzzle file (index.php only lists the files that exist).
+    // The "Mate in ?" button itself only exists with at least two levels
+    mysteryLevels = Array.from(document.querySelectorAll('.level-btn[data-level]'),
+                               btn => parseInt(btn.dataset.level, 10));
+    const mysteryBtn = document.getElementById('mysteryBtn');
+    if (mysteryBtn) {
+        mysteryBtn.addEventListener('click', function() {
+            startLevel(MYSTERY);
+        });
+    }
 
     // Attach the events to the promotion buttons
     document.querySelectorAll('.promotion-btn').forEach(btn => {
@@ -79,7 +101,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 
 function startLevel(level) {
-    currentLevel = level;
+    // The "Mate in ?" button passes MYSTERY instead of a level number: the
+    // level of each puzzle is then drawn in loadNewPuzzle, which also sets
+    // currentLevel once that puzzle is on the board. A level button leaves
+    // the mystery mode.
+    mysteryMode = (level === MYSTERY);
+    if (!mysteryMode) {
+        currentLevel = level;
+    }
     
     // Hide the selector, show the game area
     document.getElementById('levelSelector').style.display = 'none';
@@ -100,6 +129,42 @@ function backToMenu() {
     document.getElementById('gameArea').style.display = 'none';
     document.getElementById('levelSelector').style.display = 'block';
     showStatus('Select a level to get started', 'info');
+}
+
+// ============================================
+// MYSTERY LEVEL ("Mate in ?" button)
+// ============================================
+
+/**
+ * Draws the level of the next mystery puzzle: uniform among the available
+ * levels (each one has the same chance, whatever its number of puzzles) and
+ * independent of the previous draws, so that the sequence gives nothing
+ * away. The same level therefore comes back twice in a row from time to
+ * time: one time in five with five levels.
+ */
+function drawMysteryLevel() {
+    return mysteryLevels[Math.floor(Math.random() * mysteryLevels.length)];
+}
+
+/**
+ * True while the level of the current puzzle must stay hidden: mystery
+ * mode, and the puzzle is not over yet.
+ */
+function isLevelHidden() {
+    return mysteryMode && !mysteryRevealed;
+}
+
+/**
+ * Shows the level of the current mystery puzzle once it is over (mate
+ * found or solution shown): level, progress and Lichess link. Does
+ * nothing outside the mystery mode, when the level is already shown, or
+ * when no puzzle could be loaded yet.
+ */
+function revealMysteryLevel() {
+    if (!isLevelHidden() || !currentPuzzle) return;
+    mysteryRevealed = true;
+    updatePuzzleInfo();
+    updateProgress();
 }
 
 // ============================================
@@ -332,12 +397,18 @@ async function loadNewPuzzle() {
     setGameMessage('Loading...', '');
     
     document.getElementById('retryBtn').style.display = 'none';
+
+    // Level asked for: the chosen one, or in mystery mode a new draw for
+    // every puzzle. currentLevel only takes it once the puzzle is on the
+    // board (below), so that it always matches the position displayed,
+    // even if the previous puzzle is finished while this one is loading
+    const requestedLevel = mysteryMode ? drawMysteryLevel() : currentLevel;
     
     try {
         const response = await fetch('puzzle.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level: currentLevel })
+            body: JSON.stringify({ level: requestedLevel })
         });
 
         const data = await response.json();
@@ -351,7 +422,16 @@ async function loadNewPuzzle() {
 
         // Store the puzzle
         currentPuzzle = data.puzzle;
+        mysteryRevealed = false;        // a new mystery puzzle starts hidden
         solutionMoves = currentPuzzle.solution.split(' ');
+        // Level of the puzzle now on the board. Outside the mystery mode it
+        // is the chosen level, unchanged. In mystery mode it is the real
+        // length of the mate, counted on the solution (the player plays the
+        // first and the last move): mat5.csv holds the Lichess theme "Mate
+        // in 5 or more", some of whose mates take 6 to 9 moves, and the
+        // reveal must name the mate that was actually played. For levels 1
+        // to 4 both values are the same.
+        currentLevel = mysteryMode ? Math.ceil(solutionMoves.length / 2) : requestedLevel;
         currentMoveIndex = 0;
         isPlayerTurn = true;
 
@@ -374,7 +454,9 @@ async function loadNewPuzzle() {
         // Update the interface
         updatePuzzleInfo();
         updateProgress();
-        setGameMessage('🎯 Find the mate in ' + currentLevel + '!', '');
+        // Mystery mode: the level stays hidden until the end of the puzzle
+        setGameMessage(isLevelHidden() ? '🎯 Find the mate!' :
+                       '🎯 Find the mate in ' + currentLevel + '!', '');
         showStatus('Puzzle loaded - Your move!', 'success');
 
         // Stats
@@ -458,7 +540,13 @@ function onPuzzleSolved() {
     stats.solved++;
     updateStats();
     
-    setGameMessage('🎉 Well done! Checkmate!', 'success');
+    // Mystery mode: the puzzle is over, its level can be shown
+    let message = '🎉 Well done! Checkmate!';
+    if (mysteryMode) {
+        revealMysteryLevel();
+        message += ' It was a mate in ' + currentLevel + '.';
+    }
+    setGameMessage(message, 'success');
     showStatus('Puzzle solved! Load another one.', 'success');
     
     isPlayerTurn = false;
@@ -473,7 +561,14 @@ function retryMove() {
 function showSolution() {
     if (solutionPlaying) return;   // already running (S pressed twice)
     const remaining = solutionMoves.slice(currentMoveIndex).join(' ').toUpperCase();
-    setGameMessage('💡 Solution: ' + remaining, 'info');
+    // Mystery mode: showing the solution ends the puzzle, its level can be
+    // shown (currentPuzzle is null only if no puzzle could be loaded yet)
+    let message = '💡 Solution: ' + remaining;
+    if (mysteryMode && currentPuzzle) {
+        revealMysteryLevel();
+        message += ' (mate in ' + currentLevel + ')';
+    }
+    setGameMessage(message, 'info');
     
     // Visually play all the remaining moves
     playSolutionAnimated();
@@ -548,18 +643,30 @@ function flipBoard() {
 }
 
 function updatePuzzleInfo() {
-    document.getElementById('currentLevel').textContent = 'Mate in ' + currentLevel;
+    // Mystery mode: "Mate in ?" until the end of the puzzle
+    document.getElementById('currentLevel').textContent =
+        'Mate in ' + (isLevelHidden() ? '?' : currentLevel);
     document.getElementById('currentPlayer').textContent = currentPuzzle.turn === 'w' ? 'White' : 'Black';
     document.getElementById('openingName').textContent = currentPuzzle.opening || '-';
-    // The URL comes from the puzzle data: only a Lichess address becomes a
-    // link, anything else leaves the link inert (puzzle.php checks it too)
-    document.getElementById('lichessLink').href =
-        /^https:\/\/lichess\.org\//.test(currentPuzzle.url) ? currentPuzzle.url : '#';
+    const link = document.getElementById('lichessLink');
+    if (isLevelHidden()) {
+        // Mystery mode: the link opens the source game at the puzzle
+        // position, whose continuation would give the level away. Without
+        // href the anchor is no longer a link (neither clickable nor
+        // focusable) until the end of the puzzle; style.css greys it out
+        link.removeAttribute('href');
+    } else {
+        // The URL comes from the puzzle data: only a Lichess address becomes a
+        // link, anything else leaves the link inert (puzzle.php checks it too)
+        link.href =
+            /^https:\/\/lichess\.org\//.test(currentPuzzle.url) ? currentPuzzle.url : '#';
+    }
 }
 
 function updateProgress() {
     const playerMoves = Math.ceil((currentMoveIndex + 1) / 2);
-    const totalMoves = currentLevel;
+    // Mystery mode: the total is the level, hidden until the end of the puzzle
+    const totalMoves = isLevelHidden() ? '?' : currentLevel;
     document.getElementById('moveProgress').textContent = playerMoves + ' / ' + totalMoves;
 }
 

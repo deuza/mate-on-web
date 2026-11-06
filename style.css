@@ -125,6 +125,12 @@ body {
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* "Mate in ?" button (mystery level): the same button, with a dashed
+   border since its level is unknown */
+.level-btn.level-btn-mystery {
+    border-style: dashed;
+}
+
 .no-puzzles {
     color: var(--danger-color);
     font-size: 1rem;
@@ -300,6 +306,20 @@ body {
 .lichess-link:hover {
     background: var(--secondary-color);
     color: white;
+}
+
+/* Mystery level: app.js removes the href until the end of the puzzle,
+   since the source game would give the level away. Greyed out, no hover
+   effect, and a hint telling when the link comes back */
+.lichess-link:not([href]),
+.lichess-link:not([href]):hover {
+    background: var(--light-bg);
+    color: var(--text-light);
+    cursor: default;
+}
+
+.lichess-link:not([href])::after {
+    content: " (after the puzzle)";
 }
 
 /* Promotion modal */

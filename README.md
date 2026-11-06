@@ -35,6 +35,7 @@ Mate puzzle training web interface, powered by the Lichess database.
   * [File structure](#file-structure)
   * [Usage](#usage)
 
+    * [Mystery level](#mystery-level)
     * [Keyboard shortcuts](#keyboard-shortcuts)
     * [4. Upgrading the puzzles](#4-upgrading-the-puzzles)
     * [5. Technical information](#5-technical-information)
@@ -152,11 +153,21 @@ mate-on-web/
 
 ## Usage
 
-1. **Select a level** : Mate in 1, 2, 3, 4 or 5 moves
+1. **Select a level** : Mate in 1, 2, 3, 4 or 5 moves, or Mate in ? for a random level (see below)
 2. **Play** : Drag and drop a piece, or tap (click) it and then its destination, to find the mate
 3. **Wrong move** : Retry or show the solution
 4. **Right move** : The opponent replies automatically
 5. **Mate found** : Load a new puzzle
+
+### Mystery level
+
+The **Mate in ?** button draws the level of each puzzle at random among the available levels :
+
+* Each level has the same chance (one in five with the five files), whatever its number of puzzles
+* Each draw is independent of the previous ones, so the same level can come twice in a row : the sequence gives nothing away
+* The level, the total of the progress counter and the Lichess link stay hidden until the mate is found or the solution is shown, then the real length of the mate is revealed, counted on the solution : `mat5.csv` holds the Lichess theme "Mate in 5 or more", so a puzzle drawn at level 5 can turn out to be a mate in 6 to 9
+
+The draw is made in the browser : `puzzle.php` receives an ordinary level and picks the puzzle as usual. The button only appears when at least two puzzle files exist.
 
 ### Keyboard shortcuts
 

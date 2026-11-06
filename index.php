@@ -72,6 +72,17 @@ for ($i = 1; $i <= 5; $i++) {
                         <span class="level-count"><?= number_format($count) ?> puzzles</span>
                     </button>
                 <?php endforeach; ?>
+                <?php if (count($availableLevels) >= 2): ?>
+                    <!-- Mystery level: app.js draws the level of each puzzle
+                         among the buttons above, each with the same chance,
+                         and hides it until the end of the puzzle. Pointless
+                         with a single level, hence the condition. No
+                         data-level: app.js wires this button on its own -->
+                    <button class="level-btn level-btn-mystery" id="mysteryBtn">
+                        <span class="level-number">Mate in ?</span>
+                        <span class="level-count">Random level</span>
+                    </button>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
