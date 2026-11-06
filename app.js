@@ -10,12 +10,15 @@ let currentPuzzle = null;
 let currentLevel = null;
 let solutionMoves = [];
 let currentMoveIndex = 0;
-let isPlayerTurn = true;
+let isPlayerTurn = false;   // False until the first puzzle is on the board: the
+                            // starting position shown while it loads is no puzzle
 let pendingMove = null; // For the promotion
 let boardOrientation = 'white';
-let puzzleGeneration = 0;   // Incremented whenever a puzzle is loaded, restarted or left:
-                            // delayed callbacks compare it to detect they belong to a
-                            // stale puzzle, or to an attempt replaced by a retry
+let puzzleGeneration = 0;   // Incremented when a puzzle is requested, when it replaces
+                            // the previous one on the board, when it is restarted and
+                            // when it is left: delayed callbacks compare it to detect
+                            // they belong to a stale puzzle, or to an attempt replaced
+                            // by a retry
 let solutionPlaying = false; // True while the solution animation runs
 let puzzleOver = false;      // True once the current puzzle is over (mate found, or
                              // solution played to the end): only then can Retry restart it
@@ -408,13 +411,22 @@ function normalizeMove(move) {
 async function loadNewPuzzle() {
     puzzleGeneration++;
     const generation = puzzleGeneration;
+    // True once the new puzzle starts replacing the previous one on the
+    // board (below): an error raised from there on belongs to this load,
+    // even though the generation has moved on
+    let replacing = false;
     solutionPlaying = false;
     clearSelection();
     showStatus('Loading puzzle...', 'info');
     setGameMessage('Loading...', '');
     
-    // The previous puzzle is left: it can no longer be restarted, even if
-    // the new one fails to load (the New puzzle button stays available)
+    // The previous puzzle is being left: Retry is hidden until the puzzle on
+    // the board is over again. The previous puzzle stays on the board, and
+    // playable, until the new one replaces it, or for good if the load fails
+    // (the New puzzle button stays available). If it is finished in the
+    // meantime (mate or solution), Retry shows up again, and restarting it
+    // drops the pending load: the last action wins. The session stats are
+    // not affected, a replay is never counted
     puzzleOver = false;
     document.getElementById('retryBtn').style.display = 'none';
 
@@ -439,6 +451,25 @@ async function loadNewPuzzle() {
         if (data.error) {
             throw new Error(data.error);
         }
+
+        // The new puzzle replaces the previous one. The generation was bumped
+        // when it was requested, but the previous puzzle has stayed on the
+        // board and playable since: a callback created in between (the
+        // opponent's reply to a move, a solution animation started with S)
+        // holds the same value, and would run on the new puzzle. Bumping it
+        // again here makes every callback created so far stale. Nothing is
+        // asynchronous from here to the end of the replacement, so no
+        // callback can run in the middle of it
+        puzzleGeneration++;
+        replacing = true;
+        // What the previous puzzle may have left behind, and that no stale
+        // callback will clear any more: a solution animation stopped this way
+        // leaves solutionPlaying set (S would be ignored on the new puzzle),
+        // and a promotion asked on the previous position would be played on
+        // the new one once a piece is chosen
+        solutionPlaying = false;
+        pendingMove = null;
+        hidePromotionModal();
 
         // Store the puzzle
         currentPuzzle = data.puzzle;
@@ -490,6 +521,13 @@ async function loadNewPuzzle() {
         updateStats();
 
     } catch (error) {
+        // A request that was superseded (by a newer one, a retry or the
+        // menu) and fails afterwards, on a network error or an invalid
+        // response, must not show its error over the puzzle on the board.
+        // Once the new puzzle has started replacing the previous one, the
+        // generation has moved on because of that very replacement: an
+        // error raised from there on belongs to this load, and is shown
+        if (!replacing && generation !== puzzleGeneration) return;
         showStatus('Error: ' + error.message, 'error');
         setGameMessage('Loading error', 'error');
     }
@@ -656,9 +694,9 @@ function showSolution() {
 async function playSolutionAnimated() {
     const generation = puzzleGeneration;
     // Puzzle whose solution is played. A puzzle still loading when the
-    // animation starts can replace it before the end, and the generation
-    // check misses that case: the load bumped the generation before the
-    // animation read it
+    // animation starts can replace it before the end: the load bumps the
+    // generation again when it replaces this one, which stops the animation
+    // at its next pause, so the check at the end is only a safety net
     const puzzle = currentPuzzle;
     solutionPlaying = true;
     isPlayerTurn = false;
