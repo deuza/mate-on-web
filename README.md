@@ -216,6 +216,7 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 * The board is automatically oriented according to the side to move
 * Touch screens are supported: a piece can be dragged with a finger, or tapped and then its destination tapped (the same works with a mouse click)
 * Pawn promotion offers a choice between Queen, Rook, Bishop and Knight
+* Any move that gives checkmate solves the puzzle, as on Lichess, even when it is not the mate of the Lichess solution (some puzzles have several mates on the last move, a promotion to another piece included); every other move has to match the solution
 * Session stats are kept in memory only (no persistence)
 * No network access needed at runtime: jQuery, chessboard.js and the piece images are bundled in `vendor/` (see `vendor/README.md`), so the application runs offline once the puzzles are generated
 * A random puzzle is picked in constant time (seek to a random offset in the CSV), whatever the file size

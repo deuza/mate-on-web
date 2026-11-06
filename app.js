@@ -292,6 +292,18 @@ function tryMove(source, target, promotion) {
     if (normalizeMove(uciMove) === normalizeMove(expectedMove)) {
         // Correct move!
         onCorrectMove(move);
+    } else if (game.in_checkmate()) {
+        // Another mate than the one of the solution: the puzzle is solved
+        // all the same, as on Lichess, whose puzzle database states that
+        // any move that checkmates should win the puzzle. Only the last
+        // move of a line can have several answers: the Lichess generator
+        // keeps a puzzle only when every earlier move is the only good one.
+        // The index jumps to the end of the solution, as after the last
+        // expected move, so that the end of the puzzle is the same in both
+        // cases (progress, mystery reveal, Solution button), even for a
+        // mate found before the end of the line.
+        currentMoveIndex = solutionMoves.length;
+        onPuzzleSolved();
     } else {
         // Incorrect move
         onIncorrectMove(move, expectedMove);
