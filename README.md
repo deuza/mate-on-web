@@ -36,6 +36,7 @@ Mate puzzle training web interface, powered by the Lichess database.
   * [Usage](#usage)
 
     * [Mystery level](#mystery-level)
+    * [Retry](#retry)
     * [Keyboard shortcuts](#keyboard-shortcuts)
     * [4. Upgrading the puzzles](#4-upgrading-the-puzzles)
     * [5. Technical information](#5-technical-information)
@@ -155,9 +156,9 @@ mate-on-web/
 
 1. **Select a level** : Mate in 1, 2, 3, 4 or 5 moves, or Mate in ? for a random level (see below)
 2. **Play** : Drag and drop a piece, or tap (click) it and then its destination, to find the mate
-3. **Wrong move** : Retry or show the solution
+3. **Wrong move** : The move is taken back, try another one or show the solution
 4. **Right move** : The opponent replies automatically
-5. **Mate found** : Load a new puzzle
+5. **Puzzle over** (mate found or solution shown) : Retry the same puzzle from its start, or load a new one (see below)
 
 ### Mystery level
 
@@ -169,11 +170,21 @@ The **Mate in ?** button draws the level of each puzzle at random among the avai
 
 The draw is made in the browser : `puzzle.php` receives an ordinary level and picks the puzzle as usual. The button only appears when at least two puzzle files exist.
 
+### Retry
+
+Once a puzzle is over, the mate found or the solution shown to the end, the **Retry** button (or the `R` key) restarts it from its starting position, to play the line again :
+
+* Retry only appears once the puzzle is over. A wrong move needs no button : it is taken back at once, and the player stays on the same move of the line
+* The puzzle is not loaded again (no request to the server), and the board keeps its orientation
+* A replay changes neither the number of puzzles attempted nor the number solved : the mate of a replay is never counted, so a puzzle whose solution was shown cannot be counted as solved by replaying it
+* In mystery mode, the level revealed at the end of the puzzle stays shown during the replay
+
 ### Keyboard shortcuts
 
 * `N`: New puzzle
 * `F`: Flip the board
 * `S`: Show the solution
+* `R`: Retry the puzzle from its start, once it is over
 * `Esc`: Cancel the promotion, or the piece selected by a tap (click)
 
 The shortcuts are ignored while Ctrl, Alt or Cmd is held, so the browser's own shortcuts keep working.

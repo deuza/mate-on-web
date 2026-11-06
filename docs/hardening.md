@@ -158,7 +158,7 @@ curl -sI https://example.org/mate-on-web/ | grep -iE '^(content-security-policy|
 head -c 5000 /dev/zero | tr '\0' a | curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Content-Type: application/json' --data-binary @- https://example.org/mate-on-web/puzzle.php
 ```
 
-Then open the page in a browser with the developer tools : the whole game (level, mystery level, puzzle, move, promotion, solution, new puzzle) must run without a single CSP violation.
+Then open the page in a browser with the developer tools : the whole game (level, mystery level, puzzle, move, promotion, solution, retry, new puzzle) must run without a single CSP violation.
 
 ## 9. Supported versions
 

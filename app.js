@@ -13,9 +13,14 @@ let currentMoveIndex = 0;
 let isPlayerTurn = true;
 let pendingMove = null; // For the promotion
 let boardOrientation = 'white';
-let puzzleGeneration = 0;   // Incremented whenever a puzzle is loaded or left: delayed
-                            // callbacks compare it to detect they belong to a stale puzzle
+let puzzleGeneration = 0;   // Incremented whenever a puzzle is loaded, restarted or left:
+                            // delayed callbacks compare it to detect they belong to a
+                            // stale puzzle, or to an attempt replaced by a retry
 let solutionPlaying = false; // True while the solution animation runs
+let puzzleOver = false;      // True once the current puzzle is over (mate found, or
+                             // solution played to the end): only then can Retry restart it
+let puzzleReplayed = false;  // True once the current puzzle has been restarted with Retry:
+                             // a mate found in a replay is not counted in the stats
 let selectedSquare = null;   // Square of the piece picked by a tap (or a click), waiting
                              // for a second tap on its destination
 let dragging = false;        // True between a drag start accepted by onDragStart and its drop
@@ -408,6 +413,9 @@ async function loadNewPuzzle() {
     showStatus('Loading puzzle...', 'info');
     setGameMessage('Loading...', '');
     
+    // The previous puzzle is left: it can no longer be restarted, even if
+    // the new one fails to load (the New puzzle button stays available)
+    puzzleOver = false;
     document.getElementById('retryBtn').style.display = 'none';
 
     // Level asked for: the chosen one, or in mystery mode a new draw for
@@ -435,6 +443,12 @@ async function loadNewPuzzle() {
         // Store the puzzle
         currentPuzzle = data.puzzle;
         mysteryRevealed = false;        // a new mystery puzzle starts hidden
+        // A new puzzle is a first attempt, not over yet. Reset here as well
+        // as above: the previous puzzle stays playable while this one loads,
+        // and may have been finished in the meantime (mate or solution)
+        puzzleReplayed = false;
+        puzzleOver = false;
+        document.getElementById('retryBtn').style.display = 'none';
         solutionMoves = currentPuzzle.solution.split(' ');
         // Level of the puzzle now on the board. Outside the mystery mode it
         // is the chosen level, unchanged. In mystery mode it is the real
@@ -538,19 +552,25 @@ function playOpponentMove() {
 }
 
 function onIncorrectMove(move, expected) {
-    // Undo the move
+    // Undo the move: the player stays on the same move of the line and just
+    // tries another one, no button needed. The Retry button only appears
+    // once the puzzle is over, to restart it from its start (retryMove)
     game.undo();
     board.position(game.fen());
     
-    setGameMessage('❌ That\'s not the right move!', 'error');
-    document.getElementById('retryBtn').style.display = 'inline-block';
+    setGameMessage('❌ That\'s not the right move! Try again.', 'error');
     
     isPlayerTurn = true;
 }
 
 function onPuzzleSolved() {
-    stats.solved++;
-    updateStats();
+    // A replay (Retry button) is not a new attempt: its mate is not counted,
+    // so that replaying a puzzle never adds to the solved count, whether it
+    // was solved before or its solution was shown
+    if (!puzzleReplayed) {
+        stats.solved++;
+        updateStats();
+    }
     
     // Mystery mode: the puzzle is over, its level can be shown
     let message = '🎉 Well done! Checkmate!';
@@ -559,15 +579,62 @@ function onPuzzleSolved() {
         message += ' It was a mate in ' + currentLevel + '.';
     }
     setGameMessage(message, 'success');
-    showStatus('Puzzle solved! Load another one.', 'success');
+    showStatus('Puzzle solved! Retry it or load another one.', 'success');
     
     isPlayerTurn = false;
+    setPuzzleOver();
 }
 
+/**
+ * Marks the current puzzle as over (mate found, or solution played to the
+ * end) and shows the Retry button, which restarts it from its start.
+ */
+function setPuzzleOver() {
+    // The Solution button works before any puzzle could be loaded (it then
+    // plays nothing): there is nothing to restart yet
+    if (!currentPuzzle) return;
+    puzzleOver = true;
+    document.getElementById('retryBtn').style.display = 'inline-block';
+}
+
+/**
+ * Retry button and R key: restarts the current puzzle from its starting
+ * position, once it is over. The puzzle is not requested again: its
+ * position and its solution are still in memory, so puzzle.php is not
+ * called. The board keeps its orientation, a revealed mystery level stays
+ * revealed, and the replay changes neither the attempts nor the solved
+ * count (see onPuzzleSolved).
+ */
 function retryMove() {
+    // Only a finished puzzle can be restarted: puzzleOver is set by the mate
+    // or at the end of the solution animation, and cleared as soon as a new
+    // puzzle starts loading
+    if (!puzzleOver || !currentPuzzle) return;
+
+    // Stop anything still pending on the previous attempt (a delayed
+    // callback, a solution animation still running), as loadNewPuzzle does
+    puzzleGeneration++;
+    solutionPlaying = false;
+    puzzleOver = false;
+    puzzleReplayed = true;
+    pendingMove = null;
+    hidePromotionModal();
+    clearSelection();
+    clearHighlights();
     document.getElementById('retryBtn').style.display = 'none';
-    setGameMessage('🔄 Try again...', 'info');
+
+    // Back to the starting position of the puzzle
+    currentMoveIndex = 0;
+    game.load(currentPuzzle.fen);
+    board.position(currentPuzzle.fen);
     isPlayerTurn = true;
+
+    // A puzzle is over only once its mystery level has been revealed, so the
+    // first branch is a safety net
+    updateProgress();
+    setGameMessage(isLevelHidden() ? 'Find the mate again!' :
+                   'Find the mate in ' + currentLevel + ' again!', 'info');
+    showStatus('Puzzle restarted - Your move!', 'success');
 }
 
 function showSolution() {
@@ -588,6 +655,11 @@ function showSolution() {
 
 async function playSolutionAnimated() {
     const generation = puzzleGeneration;
+    // Puzzle whose solution is played. A puzzle still loading when the
+    // animation starts can replace it before the end, and the generation
+    // check misses that case: the load bumped the generation before the
+    // animation read it
+    const puzzle = currentPuzzle;
     solutionPlaying = true;
     isPlayerTurn = false;
     clearSelection();
@@ -609,7 +681,12 @@ async function playSolutionAnimated() {
     }
 
     solutionPlaying = false;
-    showStatus('Solution shown. Load a new puzzle.', 'warning');
+    // Only the puzzle the animation belongs to is over, not a puzzle loaded
+    // while it was running: Retry would restart a puzzle never played
+    if (currentPuzzle === puzzle) {
+        showStatus('Solution shown. Retry it or load a new puzzle.', 'warning');
+        setPuzzleOver();
+    }
 }
 
 // ============================================
@@ -743,6 +820,12 @@ document.addEventListener('keydown', function(e) {
         if (inGame && currentPuzzle) showSolution();
     }
     
+    // R: Retry the puzzle from its start, once it is over (retryMove
+    // ignores the key before that, like the hidden button)
+    if (e.key === 'r' || e.key === 'R') {
+        if (inGame) retryMove();
+    }
+
     // Esc: Close the promotion modal, drop the tap selection
     if (e.key === 'Escape') {
         cancelPromotion();
