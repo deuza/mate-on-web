@@ -8,6 +8,8 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/deuza/mate-on-web?style=plastic)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/deuza/mate-on-web?style=plastic)
 
+**English** | [Français](README.fr.md)
+
 # ♟️ Mate On Web - Mate in X moves ♟️
 
 Mate puzzle training web interface, powered by the Lichess database.
@@ -198,9 +200,10 @@ mate-on-web/
 ├── LICENSE                 # Creative Commons Zero v1.0 Universal
 ├── LICENSE-WTFPL           # What The Fuck Public License
 ├── README.md               # This file
+├── README.fr.md            # This file, in French
 ├── app.js                  # JavaScript game logic
 ├── chess.js                # chess.js library (local copy)
-├── docs/                   # Hardening notes, Apache and nginx configuration
+├── docs/                   # Hardening notes (in English and in French), Apache and nginx configuration
 ├── download_puzzles.sh     # Lichess download script
 ├── extract.py              # Puzzle extraction script (plays the 1st move)
 ├── favicon.ico             # Application icon

@@ -21,6 +21,9 @@ keep working after the upgrade.
   solution is shown. The button appears when at least two puzzle files exist.
 - `R` keyboard shortcut, to retry a finished puzzle.
 - This changelog.
+- French translations of the README and of the hardening notes,
+  `README.fr.md` and `docs/hardening.fr.md`, linked from the English
+  documents.
 
 ### Changed
 

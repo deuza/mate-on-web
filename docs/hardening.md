@@ -1,5 +1,7 @@
 # Mate On Web: hardening notes
 
+**English** | [Français](hardening.fr.md)
+
 This document details the security measures built into Mate On Web, and the web server configuration that completes them. The [README](../README.md) covers installation and everyday use.
 
 1. [Principles](#1-principles)
