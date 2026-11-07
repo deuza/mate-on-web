@@ -50,6 +50,8 @@ keep working after the upgrade.
   denied".
 - The page passes the W3C validator: the heading levels no longer skip from
   `h1` to `h3`, and the footer no longer uses obsolete markup.
+- `puzzle.php` sends `Allow: POST` with its 405 response, as RFC 9110
+  requires and as `docs/hardening.md` already stated.
 
 ## [1.1.0] - 2026-10-21
 

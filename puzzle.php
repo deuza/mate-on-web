@@ -17,6 +17,9 @@ function errorResponse($message, $code = 400) {
 
 // Check the method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // RFC 9110 (section 15.5.6): a 405 response must list the methods the
+    // resource supports in an Allow header
+    header('Allow: POST');
     errorResponse('Method not allowed. Use POST.', 405);
 }
 
