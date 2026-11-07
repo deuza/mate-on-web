@@ -33,6 +33,10 @@ keep working after the upgrade.
   move is still taken back at once, now with a "Try again." message and no
   button.
 - The page footer is restyled, and readable on small screens.
+- The README is reorganized: the installation takes four ordered steps, with
+  the web server configuration before the first access, the prerequisites are
+  grouped by purpose, and the update of the puzzles and the technical
+  information have their own sections.
 
 ### Fixed
 
@@ -52,6 +56,15 @@ keep working after the upgrade.
   `h1` to `h3`, and the footer no longer uses obsolete markup.
 - `puzzle.php` sends `Allow: POST` with its 405 response, as RFC 9110
   requires and as `docs/hardening.md` already stated.
+- The README and `docs/hardening.md` no longer give a PHP version that goes
+  out of date: they point to the official tables of the supported PHP and
+  Python releases.
+- `docs/hardening.md` lists every outgoing link of the page, describes the
+  tolerant parsing of `extract.py` as it works, and lists the files that the
+  cleaner layout of section 4 copies into the web directory, with `cp -p` so
+  that each line count stays valid.
+- The first link of the README table of contents pointed to no anchor; typos
+  and punctuation are fixed in both documents.
 
 ## [1.1.0] - 2026-10-21
 
