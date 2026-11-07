@@ -13,6 +13,17 @@ NC='\033[0m' # No Color
 # yes, Yes or YES. Anything else means no, so pressing Enter follows the advice.
 YES_PATTERN='^([Yy]([Ee][Ss])?)?$'
 
+# Label of a level in the messages. mat5.csv holds the Lichess theme "Mate in
+# 5 or more", that is every mate of five moves or longer: it is called 5+, as
+# on the web page. The file names and extract.py keep the plain number.
+level_label() {
+    if [ "$1" -eq 5 ]; then
+        echo "5+"
+    else
+        echo "$1"
+    fi
+}
+
 echo -e "${GREEN}\n\n=== Initializing or updating the Lichess Puzzles database ===${NC}"
 
 # Dependency check, by order of importance
@@ -157,7 +168,7 @@ if [[ "$response" =~ $YES_PATTERN ]]; then
     # shellcheck source=/dev/null
     source venv/bin/activate
     for i in {1..5}; do
-        echo -e "\n${YELLOW}Extracting mate-in-$i puzzles ... ${NC}"
+        echo -e "\n${YELLOW}Extracting mate-in-$(level_label "$i") puzzles ... ${NC}"
         # The new file is written aside and swapped in at the end: the site
         # keeps serving the previous puzzles meanwhile, and an extraction
         # that fails (set -e stops here) leaves the current file untouched.
@@ -192,7 +203,7 @@ fi
 echo ""
 echo -e "\n${GREEN}=== Available exercise files ===${NC}"
 for i in {1..5}; do
-    echo -ne "${GREEN}Number of mate-in-$i exercises : ${NC}"
+    echo -ne "${GREEN}Number of mate-in-$(level_label "$i") exercises : ${NC}"
     wc -l "mat${i}.csv"
 done
 

@@ -7,7 +7,13 @@
 let game = null;
 let board = null;
 let currentPuzzle = null;
-let currentLevel = null;
+let currentLevel = null;    // Level of the puzzle file, 1 to 5: the chosen one, or the
+                            // one drawn in mystery mode. Outside the mystery mode it is
+                            // also the level asked for the next puzzle, so it must stay
+                            // a level that puzzle.php accepts
+let mateLength = null;      // Real length of the mate on the board, counted on its
+                            // solution: what the page shows. mat5.csv holds the Lichess
+                            // theme "Mate in 5 or more", so it can exceed currentLevel
 let solutionMoves = [];
 let currentMoveIndex = 0;
 let isPlayerTurn = false;   // False until the first puzzle is on the board: the
@@ -481,14 +487,18 @@ async function loadNewPuzzle() {
         puzzleOver = false;
         document.getElementById('retryBtn').style.display = 'none';
         solutionMoves = currentPuzzle.solution.split(' ');
-        // Level of the puzzle now on the board. Outside the mystery mode it
-        // is the chosen level, unchanged. In mystery mode it is the real
-        // length of the mate, counted on the solution (the player plays the
-        // first and the last move): mat5.csv holds the Lichess theme "Mate
-        // in 5 or more", some of whose mates take 6 to 9 moves, and the
-        // reveal must name the mate that was actually played. For levels 1
+        // Level of the puzzle now on the board: the chosen one, or the one
+        // drawn in mystery mode. It stays a level, 1 to 5: outside the
+        // mystery mode it is also the level asked for the next puzzle (see
+        // requestedLevel above), and puzzle.php refuses any other value.
+        currentLevel = requestedLevel;
+        // Real length of the mate, counted on the solution (the player plays
+        // the first and the last move), shown in both modes: mat5.csv holds
+        // the Lichess theme "Mate in 5 or more", every mate of five moves or
+        // longer, so a puzzle of the Mate in 5+ level can be a mate in 7, and
+        // the page must name the mate that is actually played. For levels 1
         // to 4 both values are the same.
-        currentLevel = mysteryMode ? Math.ceil(solutionMoves.length / 2) : requestedLevel;
+        mateLength = Math.ceil(solutionMoves.length / 2);
         currentMoveIndex = 0;
         isPlayerTurn = true;
 
@@ -513,7 +523,7 @@ async function loadNewPuzzle() {
         updateProgress();
         // Mystery mode: the level stays hidden until the end of the puzzle
         setGameMessage(isLevelHidden() ? '🎯 Find the mate!' :
-                       '🎯 Find the mate in ' + currentLevel + '!', '');
+                       '🎯 Find the mate in ' + mateLength + '!', '');
         showStatus('Puzzle loaded - Your move!', 'success');
 
         // Stats
@@ -614,7 +624,7 @@ function onPuzzleSolved() {
     let message = '🎉 Well done! Checkmate!';
     if (mysteryMode) {
         revealMysteryLevel();
-        message += ' It was a mate in ' + currentLevel + '.';
+        message += ' It was a mate in ' + mateLength + '.';
     }
     setGameMessage(message, 'success');
     showStatus('Puzzle solved! Retry it or load another one.', 'success');
@@ -671,7 +681,7 @@ function retryMove() {
     // first branch is a safety net
     updateProgress();
     setGameMessage(isLevelHidden() ? 'Find the mate again!' :
-                   'Find the mate in ' + currentLevel + ' again!', 'info');
+                   'Find the mate in ' + mateLength + ' again!', 'info');
     showStatus('Puzzle restarted - Your move!', 'success');
 }
 
@@ -683,7 +693,7 @@ function showSolution() {
     let message = '💡 Solution: ' + remaining;
     if (mysteryMode && currentPuzzle) {
         revealMysteryLevel();
-        message += ' (mate in ' + currentLevel + ')';
+        message += ' (mate in ' + mateLength + ')';
     }
     setGameMessage(message, 'info');
     
@@ -770,9 +780,11 @@ function flipBoard() {
 }
 
 function updatePuzzleInfo() {
-    // Mystery mode: "Mate in ?" until the end of the puzzle
+    // Real length of the mate, not the number of the level button (a puzzle
+    // of the Mate in 5+ level can be a mate in 7). Mystery mode: "Mate in ?"
+    // until the end of the puzzle
     document.getElementById('currentLevel').textContent =
-        'Mate in ' + (isLevelHidden() ? '?' : currentLevel);
+        'Mate in ' + (isLevelHidden() ? '?' : mateLength);
     document.getElementById('currentPlayer').textContent = currentPuzzle.turn === 'w' ? 'White' : 'Black';
     document.getElementById('openingName').textContent = currentPuzzle.opening || '-';
     const link = document.getElementById('lichessLink');
@@ -792,8 +804,10 @@ function updatePuzzleInfo() {
 
 function updateProgress() {
     const playerMoves = Math.ceil((currentMoveIndex + 1) / 2);
-    // Mystery mode: the total is the level, hidden until the end of the puzzle
-    const totalMoves = isLevelHidden() ? '?' : currentLevel;
+    // The total is the real length of the mate, so that a mate in 7 of the
+    // Mate in 5+ level never shows "6 / 5". Mystery mode: hidden until the
+    // end of the puzzle
+    const totalMoves = isLevelHidden() ? '?' : mateLength;
     document.getElementById('moveProgress').textContent = playerMoves + ' / ' + totalMoves;
 }
 

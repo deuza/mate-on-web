@@ -67,8 +67,15 @@ for ($i = 1; $i <= 5; $i++) {
                 Run <code>./download_puzzles.sh</code> to generate them.</p>
             <?php else: ?>
                 <?php foreach ($availableLevels as $level => $count): ?>
+                    <?php
+                    // Level 5 is shown as "Mate in 5+": mat5.csv holds the
+                    // Lichess theme "Mate in 5 or more", that is every mate of
+                    // five moves or longer. Once a puzzle is on the board, the
+                    // game area gives the real length of its mate (app.js)
+                    $levelLabel = ($level === 5) ? '5+' : (string) $level;
+                    ?>
                     <button class="level-btn" data-level="<?= $level ?>">
-                        <span class="level-number">Mate in <?= $level ?></span>
+                        <span class="level-number">Mate in <?= $levelLabel ?></span>
                         <span class="level-count"><?= number_format($count) ?> puzzles</span>
                     </button>
                 <?php endforeach; ?>

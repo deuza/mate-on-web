@@ -63,7 +63,9 @@ parser.add_argument(
     dest='mat_en',      # keeps the variable name used below
     type=int,
     choices=[1, 2, 3, 4, 5],
-    help='Only keep mate-in-X puzzles (1 to 5)'
+    # 5 keeps the Lichess theme mateIn5, "Mate in 5 or more": every mate of
+    # five moves or longer (the web page shows that level as "Mate in 5+")
+    help='Only keep mate-in-X puzzles (1 to 5, where 5 means 5 or more)'
 )
 
 parser.add_argument(
