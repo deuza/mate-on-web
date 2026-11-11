@@ -104,8 +104,62 @@ fi
 
 # URL and files
 URL="https://database.lichess.org/lichess_db_puzzle.csv.zst"
+SUMS_URL="https://database.lichess.org/sha256sums.txt"
 COMPRESSED="lichess_db_puzzle.csv.zst"
 DECOMPRESSED="lichess_db_puzzle.csv"
+
+# Checks the archive that has just been downloaded against the SHA-256
+# checksum that Lichess publishes next to it (sha256sums.txt, one
+# "checksum  file name" line per file): a download cut short or corrupted is
+# caught here, before the decompression.
+# The list is not advertised on the Lichess page, and its date is not the one
+# of the dump (nine hours later on 2026-11-01). So when it cannot be fetched,
+# or does not name the archive, the check is skipped with a warning; and when
+# the checksums differ, the question is asked, the recommended answer being
+# to stop. An archive kept from an earlier run is not checked: it may be an
+# older dump, whose checksum is no longer published.
+# sha256sum is provided by GNU coreutils, like stat and numfmt below; awk is
+# a POSIX tool.
+verify_checksum() {
+    local sums expected actual
+
+    echo -e "\n${YELLOW}Checking the SHA-256 checksum of ${COMPRESSED} ...${NC}"
+    if ! sums=$(wget -q -T 30 -t 2 -O - "$SUMS_URL"); then
+        echo -e "${YELLOW}Warning: $SUMS_URL could not be downloaded, the checksum is not verified.${NC}"
+        return 0
+    fi
+    # The line of the archive, in the variants that the tools of the sha256sum
+    # family write or accept: a "*" in front of the name (binary mode), a "./"
+    # prefix, CRLF line endings, a checksum in upper case.
+    expected=$(awk -v file="$COMPRESSED" '
+        { sub(/\r$/, ""); name = $2; sub(/^\*/, "", name); sub(/^\.\//, "", name) }
+        name == file { print tolower($1); exit }' <<< "$sums")
+    if [[ ! "$expected" =~ ^[0-9a-f]{64}$ ]]; then
+        echo -e "${YELLOW}Warning: $SUMS_URL lists no usable checksum for $COMPRESSED, the checksum is not verified.${NC}"
+        return 0
+    fi
+    actual=$(sha256sum "$COMPRESSED")
+    actual=${actual%% *}
+    if [ "$actual" = "$expected" ]; then
+        echo -e "${GREEN}The checksum matches the one published by Lichess${NC}"
+        return 0
+    fi
+
+    echo ""
+    echo -e "${RED}!!! The checksum of $COMPRESSED does not match !!!${NC}"
+    echo ""
+    echo "Published by Lichess : $expected"
+    echo "Downloaded file      : $actual"
+    echo ""
+    echo "The download is incomplete or corrupt, or Lichess has not renewed its list yet."
+    echo -e "${YELLOW}Do you want to stop here? (recommended) (Y/n)${NC}"
+    read -r response
+    if [[ "$response" =~ $YES_PATTERN ]]; then
+        echo -e "\n${YELLOW}Stopped. Run again: $0 and let it replace $COMPRESSED${NC}"
+        exit 1
+    fi
+    echo "Going on with the downloaded file."
+}
 
 # Download
 echo -e "\n${YELLOW}Downloading ${COMPRESSED} ...${NC}"
@@ -115,11 +169,13 @@ if [ -f "$COMPRESSED" ]; then
     if [[ "$response" =~ $YES_PATTERN ]]; then
         rm "$COMPRESSED"
         wget "$URL"
+        verify_checksum
     else
         echo "Using the existing file."
     fi
 else
     wget "$URL"
+    verify_checksum
 fi
 
 # Decompression
@@ -176,6 +232,20 @@ if [[ "$response" =~ $YES_PATTERN ]]; then
         # neither the environment nor the current directory can put a
         # module in front of the standard ones.
         venv/bin/python3 -I extract.py --mate-in "$i" --verbose "$DECOMPRESSED" > "mat${i}.csv.tmp"
+        # An extraction can also end without any error and find no puzzle
+        # at all: a dump whose columns or theme names have changed, or a
+        # partial dump kept from an earlier run. An empty file must not take
+        # the place of the puzzles being served: the page would lose the
+        # level. Neither the checksum nor the decompression can see that.
+        if [ ! -s "mat${i}.csv.tmp" ]; then
+            rm -f "mat${i}.csv.tmp"
+            echo ""
+            echo -e "${RED}!!! No mate-in-$(level_label "$i") puzzle found in $DECOMPRESSED !!!${NC}"
+            echo ""
+            echo "mat${i}.csv is left as it was, and the levels after it are not extracted."
+            echo "Check that $DECOMPRESSED is a complete Lichess puzzle dump."
+            exit 1
+        fi
         # Line count cache read by index.php, which spares scanning the whole
         # CSV on every page load. Written before the swap: mv keeps the
         # modification time of the new CSV, so the count stays the newer of
