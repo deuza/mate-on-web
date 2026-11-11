@@ -170,6 +170,8 @@ Une fois le problème terminé, mat trouvé ou solution déroulée jusqu'au bout
 
 ### Raccourcis clavier
 
+L'échiquier se joue avec un dispositif de pointage (souris, pavé tactile) ou au doigt sur un écran tactile : un coup ne peut pas être saisi au clavier. Les raccourcis viennent en plus des boutons :
+
 * `N` : nouveau problème
 * `F` : tourner l'échiquier
 * `S` : afficher la solution

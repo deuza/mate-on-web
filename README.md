@@ -168,6 +168,8 @@ Once a puzzle is over, the mate found or the solution shown to the end, the **Re
 
 ### Keyboard shortcuts
 
+The board is played with a pointing device (mouse, touchpad) or with a finger on a touch screen: a move cannot be entered from the keyboard. The shortcuts come in addition to the buttons:
+
 * `N`: New puzzle
 * `F`: Flip the board
 * `S`: Show the solution
