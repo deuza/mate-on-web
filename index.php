@@ -149,6 +149,10 @@ foreach (['style.css', 'chess.js', 'app.js'] as $asset) {
                             <span class="info-label">Opening:</span>
                             <span class="info-value opening" id="openingName">-</span>
                         </div>
+                        <div class="info-row">
+                            <span class="info-label">FEN:</span>
+                            <span class="info-value fen" id="puzzleFen">-</span>
+                        </div>
                     </div>
                 </div>
 

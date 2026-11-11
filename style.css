@@ -261,6 +261,16 @@ body {
     text-align: right;
 }
 
+/* FEN of the puzzle: a long string whose only spaces come after the eight
+   ranks. It may break anywhere, so that it never widens the panel */
+.info-value.fen {
+    font-family: monospace;
+    font-size: 0.8rem;
+    margin-left: 12px;
+    text-align: right;
+    word-break: break-all;
+}
+
 /* Game message */
 .game-message {
     background: var(--light-bg);

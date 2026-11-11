@@ -810,6 +810,11 @@ function updatePuzzleInfo() {
         'Mate in ' + (isLevelHidden() ? '?' : mateLength);
     document.getElementById('currentPlayer').textContent = currentPuzzle.turn === 'w' ? 'White' : 'Black';
     document.getElementById('openingName').textContent = currentPuzzle.opening || '-';
+    // Starting position of the puzzle as text: the FEN field of the puzzle
+    // data, checked by puzzle.php. It gives a screen reader the position the
+    // puzzle starts from (it does not follow the moves), and can be copied
+    // into another chess program
+    document.getElementById('puzzleFen').textContent = currentPuzzle.fen;
     const link = document.getElementById('lichessLink');
     if (isLevelHidden()) {
         // Mystery mode: the link opens the source game at the puzzle
