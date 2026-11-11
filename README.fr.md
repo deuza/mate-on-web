@@ -248,6 +248,7 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 * Les statistiques de session sont conservées en mémoire uniquement (aucune persistance)
 * Aucun accès réseau n'est nécessaire à l'exécution : jQuery, chessboard.js et les images des pièces sont embarqués dans `vendor/` (voir `vendor/README.md`), l'application fonctionne donc hors ligne une fois les problèmes générés
 * Un problème est tiré au hasard en temps constant (positionnement à un décalage aléatoire dans le CSV), quelle que soit la taille du fichier
+* Après une mise à jour, le navigateur récupère aussitôt les nouveaux `app.js`, `chess.js` et `style.css` : `index.php` ajoute leur date de modification à leur adresse (`app.js?v=...`), une copie restée dans le cache du navigateur n'est donc jamais utilisée avec une page plus récente
 
 ## Ressources externes
 

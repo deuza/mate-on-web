@@ -33,6 +33,19 @@ for ($i = 1; $i <= 5; $i++) {
         }
     }
 }
+
+// Version stamp of the application's own static files: their modification
+// time, added to their address as a query string (app.js?v=1794045711).
+// Without it, a browser keeps style.css, chess.js and app.js in its cache and
+// does not ask the server again for a time that grows with the age of the
+// file: after an upgrade, the new page would run with the previous script.
+// A file that changes gets a new address, which is fetched at once. The files
+// of vendor/ carry their version in their name and need no stamp.
+$assetVersions = [];
+foreach (['style.css', 'chess.js', 'app.js'] as $asset) {
+    $mtime = is_file($asset) ? filemtime($asset) : false;
+    $assetVersions[$asset] = ($mtime === false) ? '' : '?v=' . $mtime;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,7 +58,7 @@ for ($i = 1; $i <= 5; $i++) {
     <link rel="stylesheet" href="vendor/chessboard-1.0.0.min.css">
     
     <!-- Custom styles -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css<?= $assetVersions['style.css'] ?>">
 
     <!-- Favicon -->
     <link rel="icon" href="favicon.ico" sizes="any">
@@ -204,12 +217,12 @@ for ($i = 1; $i <= 5; $i++) {
     <script src="vendor/jquery-3.7.1.min.js"></script>
     
     <!-- Local chess.js -->
-    <script src="chess.js"></script>
+    <script src="chess.js<?= $assetVersions['chess.js'] ?>"></script>
     
     <!-- Chessboard.js, local copy -->
     <script src="vendor/chessboard-1.0.0.min.js"></script>
     
     <!-- Main application -->
-    <script src="app.js"></script>
+    <script src="app.js<?= $assetVersions['app.js'] ?>"></script>
 </body>
 </html>

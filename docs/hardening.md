@@ -25,7 +25,7 @@ This document details the security measures built into Mate On Web, and the web 
 
 ## 2. Entry points
 
-- `index.php` reads no request parameter. It lists the puzzle files and their line counts (`matN.count`, counted again only when the count file is missing or older than its CSV).
+- `index.php` reads no request parameter. It lists the puzzle files and their line counts (`matN.count`, counted again only when the count file is missing or older than its CSV), and adds the modification time of `style.css`, `chess.js` and `app.js` to their address, so that a browser does not keep a previous version after an upgrade.
 - `puzzle.php` only accepts POST with a JSON body. Any other method gets a 405 with `Allow: POST`.
 - **Body size:** A valid request is about a dozen bytes (`{"level":1}`). A declared `Content-Length` above 1024 bytes is refused with a 413 before anything is read, and the read itself is capped at 1024 bytes: `post_max_size` does not bound `php://input` (PHP only logs a warning and the stream stays readable), and a chunked body has no `Content-Length`. The web server adds its own limit (section 6).
 - **Level:** cast to an integer, must be between 1 and 5; the file name is built from that integer only.

@@ -246,6 +246,7 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 * Session stats are kept in memory only (no persistence)
 * No network access needed at runtime: jQuery, chessboard.js and the piece images are bundled in `vendor/` (see `vendor/README.md`), so the application runs offline once the puzzles are generated
 * A random puzzle is picked in constant time (seek to a random offset in the CSV), whatever the file size
+* After an upgrade, the browser fetches the new `app.js`, `chess.js` and `style.css` at once: `index.php` adds their modification time to their address (`app.js?v=...`), so a copy kept in the browser cache is never used with a newer page
 
 ## External resources
 

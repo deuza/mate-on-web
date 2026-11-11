@@ -27,7 +27,7 @@ Ce document détaille les mesures de sécurité intégrées à Mate On Web, ains
 
 ## 2. Points d'entrée
 
-- `index.php` ne lit aucun paramètre de requête. Il liste les fichiers de problèmes et leur nombre de lignes (`matN.count`, recompté uniquement si le fichier de décompte manque ou s'il est plus ancien que son CSV).
+- `index.php` ne lit aucun paramètre de requête. Il liste les fichiers de problèmes et leur nombre de lignes (`matN.count`, recompté uniquement si le fichier de décompte manque ou s'il est plus ancien que son CSV), et ajoute à l'adresse de `style.css`, `chess.js` et `app.js` leur date de modification, pour qu'un navigateur ne garde pas une version précédente après une mise à jour.
 - `puzzle.php` n'accepte que la méthode POST, avec un corps JSON. Toute autre méthode reçoit un 405 accompagné de `Allow: POST`.
 - **Taille du corps :** une requête valide fait une douzaine d'octets (`{"level":1}`). Un `Content-Length` déclaré au-delà de 1024 octets est refusé par un 413 avant toute lecture, et la lecture elle-même est plafonnée à 1024 octets : `post_max_size` ne borne pas `php://input` (PHP se contente de journaliser un avertissement et le flux reste lisible), et un corps transmis par morceaux (chunked) n'a pas de `Content-Length`. Le serveur web ajoute sa propre limite (section 6).
 - **Niveau :** converti en entier, il doit être compris entre 1 et 5 ; le nom du fichier est construit à partir de cet entier uniquement.
