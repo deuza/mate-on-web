@@ -67,7 +67,7 @@ The solution is sent to the browser on purpose: the moves are checked in the bro
 
 ## 6. Web server configuration
 
-The code protects itself, but some protections can only come from the web server: they do not exist without its configuration. **That configuration is therefore not optional**, and it is to be applied before the page is opened to others. Without it, Debian's defaults for `/var/www` serve `.git/`, `venv/`, the scripts and the puzzle files (tens of megabytes each) with directory listings, and send no security header at all.
+The code protects itself, but some protections can only come from the web server: they do not exist without its configuration. **That configuration is therefore not optional**, and it is to be applied before the page is opened to others. Without it, Debian's defaults for `/var/www` serve `.git/`, `venv/`, the scripts and the puzzle files (more than 100 MB for the largest) with directory listings, and send no security header at all.
 
 | Protection                              | In the code                                   | In the server configuration                     |
 |-----------------------------------------|-----------------------------------------------|-------------------------------------------------|

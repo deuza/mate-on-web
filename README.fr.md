@@ -115,6 +115,9 @@ Téléchargez et extrayez les problèmes de Lichess en suivant les instructions 
 
 ### 3. Configuration du serveur web
 
+> **Si l'application est accessible depuis Internet, cette étape est obligatoire.**
+> Cloner le dépôt n'applique pas la configuration fournie dans `docs/` : tant qu'elle n'est pas installée dans le serveur web, n'importe qui peut télécharger `.git/`, `venv/`, les scripts et les fichiers de problèmes (`mat1.csv` pèse à lui seul plus de 100 Mo), et la page est envoyée sans sa politique de sécurité du contenu. Seule une installation que personne d'autre ne peut atteindre (votre propre machine, un réseau privé) peut s'en passer.
+
 Avant d'ouvrir la page à d'autres, installez la configuration du serveur web fournie dans `docs/` : sans elle, le serveur sert `.git/`, `venv/`, les scripts et les fichiers de problèmes, et n'envoie aucun en-tête de sécurité. Avec Apache :
 
 ```
@@ -124,7 +127,9 @@ a2enconf mate-on-web
 apache2ctl configtest && systemctl reload apache2
 ```
 
-L'équivalent pour nginx, la politique de sécurité du contenu (CSP), la limitation du débit et les vérifications à faire ensuite se trouvent dans [docs/hardening.fr.md](docs/hardening.fr.md).
+Vérifiez ensuite le résultat depuis une autre machine, sur l'adresse publique, avec les commandes de la section 8 de [docs/hardening.fr.md](docs/hardening.fr.md) : les chemins refusés doivent répondre 403, et l'en-tête `Content-Security-Policy` doit être envoyé une seule fois, avec la valeur du fichier fourni. S'il manque, s'il est envoyé deux fois ou s'il porte une autre valeur, la configuration n'est pas appliquée, ou un autre fichier de configuration du serveur web définit le même en-tête (voir les notes sur Apache de la section 6). Refaites ces vérifications après toute modification de la configuration du serveur web.
+
+L'équivalent pour nginx, la politique de sécurité du contenu (CSP) et la limitation du débit se trouvent dans [docs/hardening.fr.md](docs/hardening.fr.md).
 
 ### 4. Accès
 

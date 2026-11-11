@@ -113,6 +113,9 @@ Download and extract the Lichess puzzles by following the instructions in the sc
 
 ### 3. Web server configuration
 
+> **If the application can be reached from the Internet, this step is mandatory.**
+> Cloning the repository does not apply the configuration shipped in `docs/`: as long as it is not installed in the web server, anyone can download `.git/`, `venv/`, the scripts and the puzzle files (`mat1.csv` alone weighs more than 100 MB), and the page is sent without its content security policy. Only an installation that nobody else can reach (your own machine, a private network) can do without it.
+
 Before opening the page to others, install the web server configuration shipped in `docs/`: without it, the server serves `.git/`, `venv/`, the scripts and the puzzle files, and sends no security header. With Apache:
 
 ```
@@ -122,7 +125,9 @@ a2enconf mate-on-web
 apache2ctl configtest && systemctl reload apache2
 ```
 
-The nginx equivalent, the content security policy, rate limiting and the checks to run afterwards are in [docs/hardening.md](docs/hardening.md).
+Then check the result from another machine, against the public address, with the commands of section 8 of [docs/hardening.md](docs/hardening.md): the refused paths must answer 403, and the `Content-Security-Policy` header must be sent once, with the value of the shipped file. If it is missing, comes twice or has another value, the configuration is not applied, or another configuration file of the web server sets the same header (see the Apache notes of section 6). Run these checks again after any change to the web server configuration.
+
+The nginx equivalent, the content security policy and rate limiting are in [docs/hardening.md](docs/hardening.md).
 
 ### 4. Access
 

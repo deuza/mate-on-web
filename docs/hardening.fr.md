@@ -69,7 +69,7 @@ La solution est envoyée au navigateur volontairement : les coups sont vérifié
 
 ## 6. Configuration du serveur web
 
-Le code se protège lui-même, mais certaines protections ne peuvent venir que du serveur web : elles n'existent pas sans sa configuration. **Cette configuration n'est donc pas facultative**, et elle doit être appliquée avant d'ouvrir la page à d'autres. Sans elle, les réglages par défaut de Debian pour `/var/www` servent `.git/`, `venv/`, les scripts et les fichiers de problèmes (des dizaines de mégaoctets chacun) avec le listage des répertoires, et n'envoient aucun en-tête de sécurité.
+Le code se protège lui-même, mais certaines protections ne peuvent venir que du serveur web : elles n'existent pas sans sa configuration. **Cette configuration n'est donc pas facultative**, et elle doit être appliquée avant d'ouvrir la page à d'autres. Sans elle, les réglages par défaut de Debian pour `/var/www` servent `.git/`, `venv/`, les scripts et les fichiers de problèmes (plus de 100 Mo pour le plus gros) avec le listage des répertoires, et n'envoient aucun en-tête de sécurité.
 
 | Protection                                        | Dans le code                                         | Dans la configuration du serveur                |
 |---------------------------------------------------|------------------------------------------------------|-------------------------------------------------|
