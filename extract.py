@@ -53,8 +53,11 @@ parser = argparse.ArgumentParser(
 Examples:
   ./extract.py lichess_db_puzzle.csv > output.csv
   ./extract.py --mate-in=1 lichess_db_puzzle.csv > mat1.csv
-  ./extract.py --no_id --mate-in=2 lichess_db_puzzle.csv > mat2.csv
+  ./extract.py --no_id --mate-in=2 lichess_db_puzzle.csv > mate-in-2-no-id.csv
   ./extract.py --verbose --mate-in=1 lichess_db_puzzle.csv > mat1.csv
+
+The web application reads the PuzzleId in the first column of matN.csv:
+a file written with --no_id cannot be served by it.
 """
 )
 
@@ -71,7 +74,11 @@ parser.add_argument(
 parser.add_argument(
     '--no_id',
     action='store_true',
-    help='Leave the PuzzleId out of the output'
+    # Kept from the command-line version (mat-en), whose trainer reads files
+    # without PuzzleId. puzzle.php reads the fields by position, PuzzleId
+    # first: it answers "Invalid FEN in puzzle" on every line of such a file
+    help='Leave the PuzzleId out of the output (not for the matN.csv files '
+         'of the web application, which needs it)'
 )
 
 parser.add_argument(

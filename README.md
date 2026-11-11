@@ -237,6 +237,8 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 * **OpeningTags**: Associated opening(s)
 * **DailyDate**: Unix timestamp in milliseconds if the puzzle was featured as the Lichess daily puzzle, empty otherwise (not used by the application)
 
+`puzzle.php` reads the fields by their position, the PuzzleId first. The `--no_id` option of `extract.py`, kept from the command-line version ([mat-en](https://github.com/deuza/mat-en/)), leaves that field out: a file written with it cannot be served by the application, do not use it for the `matN.csv` files.
+
 ### Technical notes
 
 * The board is automatically oriented according to the side to move

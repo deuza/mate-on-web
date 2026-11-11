@@ -239,6 +239,8 @@ PuzzleId,FEN,Solution,URL,OpeningTags,DailyDate
 * **OpeningTags** : ouverture(s) associée(s)
 * **DailyDate** : horodatage Unix en millisecondes si le problème a été le problème du jour de Lichess, vide sinon (inutilisé par l'application)
 
+`puzzle.php` lit les champs d'après leur position, PuzzleId en premier. L'option `--no_id` de `extract.py`, conservée de la version en ligne de commande ([mat-en](https://github.com/deuza/mat-en/)), retire ce champ : un fichier écrit avec elle ne peut pas être servi par l'application, ne l'utilisez pas pour les fichiers `matN.csv`.
+
 ### Notes techniques
 
 * L'échiquier est orienté automatiquement selon le camp au trait
