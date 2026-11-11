@@ -9,23 +9,28 @@
     box-sizing: border-box;
 }
 
+/* Palette. Every colour that carries text, or that text is written on, keeps
+   a contrast ratio of at least 4.5:1 with its counterpart (WCAG 2.x level AA,
+   normal text): check a new value before using it. The orange is the only
+   background too light for white text, it takes the dark text colour instead.
+   The start of the page gradient follows the same rule for the subtitle. */
 :root {
     --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --success-color: #27ae60;
-    --danger-color: #e74c3c;
+    --secondary-color: #2471a3;
+    --success-color: #1e8449;
+    --danger-color: #c0392b;
     --warning-color: #f39c12;
-    --info-color: #16a085;
+    --info-color: #117864;
     --light-bg: #ecf0f1;
     --dark-bg: #34495e;
     --border-color: #bdc3c7;
     --text-color: #2c3e50;
-    --text-light: #7f8c8d;
+    --text-light: #5d6d7e;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5560c8 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
     color: var(--text-color);
@@ -64,7 +69,7 @@ body {
 .status.info { background-color: var(--info-color); color: white; }
 .status.success { background-color: var(--success-color); color: white; }
 .status.error { background-color: var(--danger-color); color: white; }
-.status.warning { background-color: var(--warning-color); color: white; }
+.status.warning { background-color: var(--warning-color); color: var(--text-color); }
 
 /* Level selector */
 .level-selector {
@@ -178,7 +183,7 @@ body {
 }
 
 #newPuzzleBtn { background: var(--success-color); color: white; }
-#solutionBtn { background: var(--warning-color); color: white; }
+#solutionBtn { background: var(--warning-color); color: var(--text-color); }
 #retryBtn { background: var(--secondary-color); color: white; }
 
 /* Main container */
@@ -285,19 +290,21 @@ body {
     justify-content: center;
 }
 
+/* On these light tints, the palette colour of the same hue stays under
+   4.5:1: the text takes a darker shade of it */
 .game-message.success {
     background: rgba(39, 174, 96, 0.2);
-    color: var(--success-color);
+    color: #186a3b;
 }
 
 .game-message.error {
     background: rgba(231, 76, 60, 0.2);
-    color: var(--danger-color);
+    color: #922b21;
 }
 
 .game-message.info {
     background: rgba(52, 152, 219, 0.2);
-    color: var(--secondary-color);
+    color: #1a5276;
 }
 
 /* Lichess link */
