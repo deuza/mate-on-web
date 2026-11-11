@@ -556,11 +556,14 @@ function onCorrectMove(move) {
     setGameMessage('✓ Excellent!', 'success');
     
     // Play the opponent's reply after a delay, unless another puzzle has been
-    // loaded in the meantime
+    // loaded in the meantime, or the solution was asked for (S) during the
+    // delay: its animation starts from this very reply and plays it itself.
+    // Replying here as well would play the same move from two sources, then
+    // hand the board back to the player while the solution is being shown
     const generation = puzzleGeneration;
     isPlayerTurn = false;
     setTimeout(() => {
-        if (generation !== puzzleGeneration) return;
+        if (generation !== puzzleGeneration || solutionPlaying) return;
         playOpponentMove();
     }, 500);
 }
@@ -592,7 +595,9 @@ function playOpponentMove() {
         const generation = puzzleGeneration;
         setTimeout(() => {
             clearHighlights();
-            if (generation !== puzzleGeneration) return;   // stale puzzle
+            // Stale puzzle, or solution asked for (S) since the reply: the
+            // board stays locked and the "Solution: ..." message stays shown
+            if (generation !== puzzleGeneration || solutionPlaying) return;
             setGameMessage('👤 Opponent played ' + opponentMove.toUpperCase() + ' - Your move!', 'info');
             isPlayerTurn = true;
         }, 300);
