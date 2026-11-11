@@ -39,7 +39,7 @@ for ($i = 1; $i <= 5; $i++) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mate On Web - Mate in X moves</title>
+    <title>Mate On Web</title>
     
     <!-- Chessboard.js CSS (local copy, see vendor/README.md) -->
     <link rel="stylesheet" href="vendor/chessboard-1.0.0.min.css">
