@@ -69,7 +69,10 @@ foreach (['style.css', 'chess.js', 'app.js'] as $asset) {
         <p class="subtitle">Mate training • Powered by DeuZa</p>
     </div>
 
-    <div id="status" class="status info">Select a level to get started</div>
+    <!-- role="status": a screen reader announces the text when app.js
+         changes it, without taking the focus (same for the game message
+         below). A text written again unchanged may not be announced twice -->
+    <div id="status" class="status info" role="status" aria-live="polite">Select a level to get started</div>
 
     <!-- Level selector -->
     <div class="level-selector" id="levelSelector">
@@ -159,7 +162,7 @@ foreach (['style.css', 'chess.js', 'app.js'] as $asset) {
                 <!-- Game messages -->
                 <div class="section">
                     <h3>💬 Message</h3>
-                    <div id="gameMessage" class="game-message">
+                    <div id="gameMessage" class="game-message" role="status" aria-live="polite">
                         Find the mate!
                     </div>
                 </div>
