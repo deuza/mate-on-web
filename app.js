@@ -264,6 +264,11 @@ function onDrop(source, target) {
  * dragged piece back.
  */
 function requestMove(source, target) {
+    // A drag is checked when it starts (onDragStart) but ends later: if the
+    // solution was asked for (S) while the piece was held, the drop comes
+    // during the animation. Refused here, before the promotion modal opens
+    if (!isPlayerTurn || solutionPlaying) return 'snapback';
+
     // Check whether this is a promotion
     const piece = game.get(source);
     if (piece && piece.type === 'p') {
@@ -282,6 +287,14 @@ function requestMove(source, target) {
 }
 
 function tryMove(source, target, promotion) {
+    // Last check before the move is played and compared with the solution,
+    // whatever the way it comes in (drag, two taps, promotion modal): no
+    // move of the player is accepted outside the player's turn or while the
+    // solution is shown. A mate played then would be counted as solved
+    if (!isPlayerTurn || solutionPlaying) {
+        return 'snapback';
+    }
+
     // Try the move
     const move = game.move({
         from: source,
@@ -692,6 +705,11 @@ function retryMove() {
 
 function showSolution() {
     if (solutionPlaying) return;   // already running (S pressed twice)
+    // A promotion still waiting for its piece is dropped, as loadNewPuzzle
+    // and retryMove do: the modal would stay open over the animation, and
+    // the piece chosen in it would be played against the solution
+    pendingMove = null;
+    hidePromotionModal();
     const remaining = solutionMoves.slice(currentMoveIndex).join(' ').toUpperCase();
     // Mystery mode: showing the solution ends the puzzle, its level can be
     // shown (currentPuzzle is null only if no puzzle could be loaded yet)
